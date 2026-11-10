@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Próximo! - Fila virtual para barbearias</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1F1E1B;font-family:Inter,system-ui,sans-serif;color:#1A1A18;min-height:100vh}
+.stage{max-width:1100px;margin:0 auto;padding:28px 20px 40px;display:flex;flex-direction:column;gap:22px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;color:#fff}
+.head h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.5px}
+.head h1 span{color:#E8A33D}
+.head p{margin:4px 0 0;color:#BDBAB1;font-size:15px}
+.reset{height:40px;padding:0 16px;border-radius:10px;border:1px solid #4A4842;background:none;color:#DAD7CE;font:inherit;font-size:14px;cursor:pointer}
+.reset:hover{background:#2C2B27}
+.phones{display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;align-items:center;gap:12px}
+.cap{color:#DAD7CE;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.cap i{width:8px;height:8px;border-radius:4px;display:inline-block}
+.phone{width:375px;height:760px;border-radius:44px;background:#0E0E0D;padding:12px;box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.screen{width:100%;height:100%;border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.scroll{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+/* cliente: claro */
+.cli{background:#F7F6F2}
+.cli .bar{padding:26px 18px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #E7E5DF;background:#fff}
+.logo{width:34px;height:34px;border-radius:10px;background:#E8A33D;color:#1A1A18;display:flex;align-items:center;justify-content:center;font-weight:800}
+.bar b{font-size:16px;display:block}.bar small{font-size:12px;color:#6A6862}
+/* barbeiro: escuro */
+.bar-app{background:#17171A;color:#F2F1EE}
+.bar-app .bar{padding:26px 18px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #2A2A2E}
+.bar-app .bar small{color:#A5A39C}
+.pro{font-size:10px;font-weight:800;background:#E8A33D;color:#1A1A18;padding:2px 6px;border-radius:5px;margin-left:6px;vertical-align:middle}
+.card{background:#fff;border:1px solid #E4E2DC;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bar-app .card{background:#222226;border-color:#303035}
+.muted{color:#6A6862;font-size:13px;line-height:1.45;margin:0}
+.bar-app .muted{color:#A5A39C}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stats2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stat{background:#fff;border:1px solid #E4E2DC;border-radius:14px;padding:12px}
+.bar-app .stat{background:#222226;border-color:#303035}
+.stat .v{font-size:20px;font-weight:800}.stat .l{font-size:11px;color:#6A6862}
+.bar-app .stat .l{color:#A5A39C}
+.tag{font-size:11px;font-weight:700;letter-spacing:.5px;color:#6A6862}
+.bar-app .tag{color:#A5A39C}
+label{font-size:13px;font-weight:600}
+input,select{height:46px;border:1px solid #D3D1CA;border-radius:12px;padding:0 12px;font:inherit;font-size:15px;background:#fff;width:100%;color:#1A1A18}
+.bar-app input,.bar-app select{background:#2B2B30;border-color:#3A3A40;color:#F2F1EE}
+input:focus,select:focus{outline:2px solid #E8A33D;outline-offset:1px}
+.btn{height:50px;border-radius:14px;border:none;font:inherit;font-size:15px;font-weight:700;cursor:pointer;width:100%}
+.btn.main{background:#E8A33D;color:#1A1A18}.btn.main:hover{background:#D9922B}
+.btn.ghost{background:transparent;border:1px solid #D3D1CA;color:inherit}
+.bar-app .btn.ghost{border-color:#3A3A40}
+.btn:disabled{opacity:.45;cursor:default}
+.servs{display:flex;flex-direction:column;gap:8px}
+.serv{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:50px;border:1px solid #D3D1CA;border-radius:12px;background:#fff;cursor:pointer;font-size:14px}
+.serv.on{border-color:#E8A33D;background:#FDF5E8;box-shadow:inset 0 0 0 1px #E8A33D}
+.serv input{width:18px;height:18px;accent-color:#C27D17;margin:0}
+.serv .n{flex:1;font-weight:600}.serv .t{color:#6A6862;font-size:12px}
+.serv .p{font-weight:700}
+.big{display:flex;flex-direction:column;align-items:center;gap:4px;padding:20px 14px;border-radius:20px;background:#1A1A18;color:#fff;text-align:center}
+.big .pos{font-size:60px;font-weight:800;line-height:1}
+.big.alert{background:#E8A33D;color:#1A1A18}
+.big.turn{background:#15803D}
+.progress{height:8px;background:#E7E5DF;border-radius:4px;overflow:hidden}
+.progress div{height:100%;background:#E8A33D;transition:width .4s}
+.q{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #303035}
+.q:last-child{border-bottom:none}
+.num{width:32px;height:32px;border-radius:16px;background:#303035;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.q.app .num{background:#E8A33D;color:#1A1A18}
+.q .g{flex:1;display:flex;flex-direction:column;min-width:0}
+.q .s{font-size:12px;color:#A5A39C}
+.badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:#303035;color:#CFCDC6;margin-left:6px}
+.badge.app{background:#3B2F1A;color:#F0C27A}
+.x{width:40px;height:40px;border:none;background:none;border-radius:10px;color:#A5A39C;cursor:pointer;font-size:16px}
+.x:hover{background:#2B2B30}
+.chair{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:#14301F;border:1px solid #1F5B36}
+.err{color:#D92D20;font-size:12px;min-height:14px;margin:0}
+.bar-app .err{color:#F97066}
+.push{position:absolute;top:10px;left:10px;right:10px;background:rgba(30,30,28,.96);color:#fff;border-radius:16px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;transform:translateY(-130%);transition:transform .35s;z-index:5;box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.push.show{transform:translateY(0)}
+.push .logo{width:28px;height:28px;font-size:13px;border-radius:8px;flex-shrink:0}
+.push b{font-size:13px;display:block}.push span{font-size:13px;color:#DAD7CE}
+.toast{position:absolute;bottom:16px;left:16px;right:16px;background:#E8A33D;color:#1A1A18;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;text-align:center}
+.toast.show{opacity:1}
+.foot{color:#8F8C83;font-size:13px;text-align:center}
+@media (max-width:820px){
+  .stage{padding:16px 10px}
+  .phone{width:100%;max-width:400px;height:720px;border-radius:30px;padding:8px}
+  .screen{border-radius:24px}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="head">
+    <div><h1>Próximo<span>!</span></h1><p>Fila virtual para barbearias que atendem por ordem de chegada</p></div>
+    <button class="reset" id="reset">↺ Reiniciar demonstração</button>
+  </div>
+  <div class="phones">
+    <div class="col">
+      <div class="cap"><i style="background:#E8A33D"></i>Celular do cliente · app Próximo!</div>
+      <div class="phone"><div class="screen cli">
+        <div class="push" id="push" role="status"><div class="logo">P!</div><div><b id="push-t"></b><span id="push-m"></span></div></div>
+        <div class="bar"><div class="logo">P!</div><div><b>Barbearia do Zé</b><small>Rua das Flores, 120 · aberto das 8h às 18h</small></div></div>
+        <div class="scroll" id="cli"></div>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="cap"><i style="background:#4ADE80"></i>Celular da barbearia · app Próximo! Pro</div>
+      <div class="phone"><div class="screen bar-app">
+        <div class="bar"><div class="logo">Z</div><div><b>Painel do barbeiro<span class="pro">PRO</span></b><small>Barbearia do Zé · hoje</small></div></div>
+        <div class="scroll" id="bar"></div>
+        <div class="toast" id="toast" role="status"></div>
+      </div></div>
+    </div>
+  </div>
+  <p class="foot">Demonstração: os dois aparelhos estão sincronizados em tempo real. Ações no painel do barbeiro aparecem na hora no celular do cliente.</p>
+</div>
+<script>
+const SERV={
+  corte:{n:'Corte',t:30,p:45},
+  barba:{n:'Barba',t:20,p:30},
+  sobrancelha:{n:'Sobrancelha',t:10,p:15},
+  corte_barba:{n:'Corte + barba',t:45,p:70},
+  corte_sobr:{n:'Corte + sobrancelha',t:35,p:55},
+  completo:{n:'Corte + barba + sobrancelha',t:55,p:80}
+};
+const brl=v=>'R$ '+v.toFixed(2).replace('.',',');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S,uid;
+function init(){
+  uid=10;
+  S={
+    me:null,
+    chair:{id:1,name:'Marcos',serv:'corte_barba',app:true,start:Date.now()-15*60000},
+    queue:[
+      {id:2,name:'Rafael',serv:'corte',app:true},
+      {id:3,name:'Seu Antônio',serv:'barba',app:false},
+      {id:4,name:'Lucas',serv:'completo',app:true},
+      {id:5,name:'Pedro',serv:'corte_sobr',app:true}
+    ],
+    done:7,revenue:385,
+    cliForm:{name:'',serv:'corte',err:''},
+    barForm:{open:false,name:'',serv:'corte',err:''},
+    notified:{}
+  };
+}
+function chairLeft(){if(!S.chair)return 0;const el=(Date.now()-S.chair.start)/60000;return Math.max(3,SERV[S.chair.serv].t-el);}
+function waitFor(i){let w=chairLeft();for(let k=0;k<i;k++)w+=SERV[S.queue[k].serv].t;return Math.round(w);}
+const fmt=m=>m<60?m+' min':Math.floor(m/60)+'h'+String(m%60).padStart(2,'0');
+
+function servList(form,scope){
+  return `<div class="servs" role="radiogroup" aria-label="Serviço">${Object.entries(SERV).map(([k,v])=>`
+    <label class="serv ${form.serv===k?'on':''}"><input type="radio" name="${scope}-serv" value="${k}" data-f="${scope}-serv" ${form.serv===k?'checked':''}>
+    <span class="n">${v.n}<br><span class="t">~${v.t} min</span></span><span class="p">${brl(v.p)}</span></label>`).join('')}</div>`;
+}
+
+function renderCli(){
+  const el=document.getElementById('cli');
+  const i=S.queue.findIndex(q=>q.id===S.me);
+  if(S.chair&&S.chair.id===S.me){
+    el.innerHTML=`<div class="big turn"><span style="font-size:15px">Chegou a sua vez!</span><span class="pos">✓</span><span>Pode sentar na cadeira, ${esc(S.chair.name)}.</span></div>
+      <div class="card"><span class="tag">SEU ATENDIMENTO</span><b>${SERV[S.chair.serv].n}</b><p class="muted">Valor: ${brl(SERV[S.chair.serv].p)} · pagamento na barbearia</p></div>`;
+    return;
+  }
+  if(S.me&&i<0&&!(S.chair&&S.chair.id===S.me)){
+    el.innerHTML=`<div class="big"><span style="font-size:15px">Atendimento concluído</span><span class="pos">★</span><span>Valeu pela visita! Até a próxima.</span></div>
+      <button class="btn main" data-a="again">Entrar na fila de novo</button>`;
+    return;
+  }
+  if(i>=0){
+    const p=S.queue[i];const ahead=i+(S.chair?1:0);const total=S.queue.length+1;
+    el.innerHTML=`<div class="big ${i<=1?'alert':''}">
+        <span style="font-size:14px">${i===0?'Você é o próximo! Venha pra barbearia':i===1?'Falta pouco, já pode ir saindo':'Sua posição na fila'}</span>
+        <span class="pos">${i+1}º</span>
+        <span>${ahead} pessoa${ahead!==1?'s':''} na sua frente · ~${fmt(waitFor(i))}</span></div>
+      <div class="progress" aria-hidden="true"><div style="width:${Math.round(100*(total-i-1)/total)}%"></div></div>
+      <div class="card"><span class="tag">SEU PEDIDO</span>
+        <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(p.name)}</b><b>${brl(SERV[p.serv].p)}</b></div>
+        <p class="muted">${SERV[p.serv].n} · ~${SERV[p.serv].t} min</p>
+        <p class="muted">Pode sair e fazer outra coisa. A gente te avisa quando faltarem 2 pessoas.</p></div>
+      <button class="btn ghost" data-a="leave">Sair da fila</button>`;
+    return;
+  }
+  const f=S.cliForm;
+  el.innerHTML=`<div class="stats2">
+      <div class="stat"><div class="v">${S.queue.length}</div><div class="l">pessoas na fila</div></div>
+      <div class="stat"><div class="v">~${fmt(waitFor(S.queue.length))}</div><div class="l">espera estimada</div></div></div>
+    <div><b style="font-size:20px">Entrar na fila</b><p class="muted">Guarde seu lugar e só venha quando estiver perto da sua vez.</p></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><label for="cli-nome">Seu nome</label>
+      <input id="cli-nome" type="text" placeholder="Ex.: Arthur" value="${esc(f.name)}" data-f="cli-name" maxlength="30"></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Serviço</span>${servList(f,'cli')}</div>
+    <p class="err">${esc(f.err)}</p>
+    <button class="btn main" data-a="join">Entrar na fila · ${brl(SERV[f.serv].p)}</button>`;
+}
+
+function renderBar(){
+  const el=document.getElementById('bar');const f=S.barForm;
+  const chair=S.chair?`<div class="chair"><div class="num" style="background:#15803D;color:#fff">✂</div>
+      <div style="flex:1;min-width:0"><b>${esc(S.chair.name)}</b><div class="muted">${SERV[S.chair.serv].n} · faltam ~${Math.round(chairLeft())} min</div></div><b>${brl(SERV[S.chair.serv].p)}</b></div>`
+    :`<p class="muted">Cadeira livre.</p>`;
+  const list=S.queue.length?S.queue.map((q,i)=>`<div class="q ${q.app?'app':''}"><div class="num">${i+1}</div>
+      <div class="g"><b style="font-size:14px">${esc(q.name)}<span class="badge ${q.app?'app':''}">${q.app?'APP':'BALCÃO'}</span></b><span class="s">${SERV[q.serv].n} · ~${fmt(waitFor(i))}</span></div>
+      <button class="x" aria-label="Remover ${esc(q.name)} da fila" data-a="remove" data-id="${q.id}">✕</button></div>`).join('')
+    :'<p class="muted">Fila vazia.</p>';
+  const add=f.open?`<div class="card"><span class="tag">CLIENTE NO BALCÃO</span>
+      <div style="display:flex;flex-direction:column;gap:6px"><label for="bar-nome">Nome</label>
+        <input id="bar-nome" type="text" placeholder="Nome do cliente" value="${esc(f.name)}" data-f="bar-name" maxlength="30"></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><label for="bar-serv">Serviço</label>
+        <select id="bar-serv" data-f="bar-serv">${Object.entries(SERV).map(([k,v])=>`<option value="${k}" ${f.serv===k?'selected':''}>${v.n} · ${brl(v.p)}</option>`).join('')}</select></div>
+      <p class="err">${esc(f.err)}</p>
+      <div style="display:flex;gap:8px"><button class="btn ghost" data-a="add-cancel">Cancelar</button><button class="btn main" data-a="add-save">Adicionar</button></div></div>`
+    :`<button class="btn ghost" data-a="add-open">+ Adicionar cliente que chegou sem app</button>`;
+  el.innerHTML=`<div class="stats">
+      <div class="stat"><div class="v">${S.queue.length}</div><div class="l">na fila</div></div>
+      <div class="stat"><div class="v">${S.done}</div><div class="l">atendidos hoje</div></div>
+      <div class="stat"><div class="v" style="font-size:16px;padding-top:4px">${brl(S.revenue).replace(',00','')}</div><div class="l">faturado hoje</div></div></div>
+    <div class="card"><span class="tag">NA CADEIRA</span>${chair}</div>
+    <button class="btn main" data-a="next" ${S.queue.length||S.chair?'':'disabled'}>${S.chair?(S.queue.length?'Finalizar e chamar próximo':'Finalizar atendimento'):'Chamar próximo'}</button>
+    ${add}
+    <div class="card"><span class="tag">FILA · ${S.queue.length} pessoa${S.queue.length!==1?'s':''} · ~${fmt(waitFor(S.queue.length))} no total</span>${list}</div>`;
+}
+function render(){renderCli();renderBar();}
+
+function push(t,m){document.getElementById('push-t').textContent=t;document.getElementById('push-m').textContent=m;const p=document.getElementById('push');p.classList.add('show');clearTimeout(push.h);push.h=setTimeout(()=>p.classList.remove('show'),4000);}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2200);}
+function checkNotify(){
+  if(!S.me)return;
+  const i=S.queue.findIndex(q=>q.id===S.me);
+  if(S.chair&&S.chair.id===S.me&&!S.notified.turn){S.notified.turn=1;push('É a sua vez! ✂','Pode sentar na cadeira, o Zé está te esperando.');}
+  else if(i===0&&!S.notified.next){S.notified.next=1;push('Você é o próximo!','Venha pra Barbearia do Zé, falta só 1 atendimento.');}
+  else if(i===1&&!S.notified.two){S.notified.two=1;push('Faltam 2 pessoas','Já pode ir saindo pra Barbearia do Zé.');}
+}
+
+document.addEventListener('input',e=>{
+  const f=e.target.dataset.f;if(!f)return;
+  if(f==='cli-name')S.cliForm.name=e.target.value;
+  if(f==='bar-name')S.barForm.name=e.target.value;
+  if(f==='bar-serv')S.barForm.serv=e.target.value;
+});
+document.addEventListener('change',e=>{
+  const f=e.target.dataset.f;
+  if(f==='cli-serv'){S.cliForm.serv=e.target.value;renderCli();}
+  if(f==='bar-serv')S.barForm.serv=e.target.value;
+});
+document.addEventListener('click',e=>{
+  if(e.target.id==='reset'){init();render();return;}
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='join'){
+    const n=S.cliForm.name.trim();
+    if(!n){S.cliForm.err='Digite seu nome para entrar na fila.';renderCli();return;}
+    const p={id:++uid,name:n,serv:S.cliForm.serv,app:true};
+    S.queue.push(p);S.me=p.id;S.notified={};S.cliForm={name:'',serv:'corte',err:''};
+    render();toast('Novo cliente entrou pelo app: '+p.name);checkNotify();return;
+  }
+  if(a==='leave'){const p=S.queue.find(q=>q.id===S.me);S.queue=S.queue.filter(q=>q.id!==S.me);S.me=null;render();if(p)toast(p.name+' saiu da fila');return;}
+  if(a==='again'){S.me=null;render();return;}
+  if(a==='next'){
+    if(S.chair){S.done++;S.revenue+=SERV[S.chair.serv].p;}
+    const p=S.queue.shift();S.chair=p?{...p,start:Date.now()}:null;
+    render();toast(p?'Chamando '+p.name:'Atendimento finalizado');checkNotify();return;
+  }
+  if(a==='remove'){const id=+b.dataset.id;S.queue=S.queue.filter(q=>q.id!==id);if(id===S.me)S.me=null;render();checkNotify();return;}
+  if(a==='add-open'){S.barForm={open:true,name:'',serv:'corte',err:''};renderBar();const i=document.getElementById('bar-nome');if(i)i.focus();return;}
+  if(a==='add-cancel'){S.barForm.open=false;renderBar();return;}
+  if(a==='add-save'){
+    const n=S.barForm.name.trim();
+    if(!n){S.barForm.err='Digite o nome do cliente.';renderBar();return;}
+    S.queue.push({id:++uid,name:n,serv:S.barForm.serv,app:false});S.barForm={open:false,name:'',serv:'corte',err:''};
+    render();toast(n+' adicionado no fim da fila');return;
+  }
+});
+setInterval(()=>{if(!document.activeElement||document.activeElement.tagName!=='INPUT')render();},30000);
+init();render();
+</script>
+</body>
+</html>
